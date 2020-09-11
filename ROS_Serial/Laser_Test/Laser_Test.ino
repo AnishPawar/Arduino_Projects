@@ -3,13 +3,10 @@
 #include <Servo.h>
 #include <sensor_msgs/LaserScan.h>
 
-//#include<Ultrasonic.h>
 
 ros::NodeHandle nh;
 sensor_msgs::LaserScan distance_ultra;
 ros::Publisher pub("Distance_Publisher",&distance_ultra);
-
-//ros::Publisher id_pub("ID_Publisher",&id);
 
 Servo first_servo;
 int echo =5;
@@ -28,23 +25,15 @@ pinMode(trig,OUTPUT);
 pinMode(echo,INPUT);
 
 
-for (int j = 0;j<18;j++)
-{
-  ranges[j] = 0;  
-}
 
 nh.initNode();
 nh.advertise(pub);
-
-
 }
 
-int flag = 0; 
-
-
+int flag = 0;
 
 void loop() 
-{ 
+{ if (flag ==0){
   
     for (int i = 0;i<=180;i=i+10)
     {
@@ -59,11 +48,15 @@ void loop()
       duration = pulseIn(echo,HIGH);
       distance = duration*0.034/2;
 
-//      ranges[i] = i;
+      ranges[i/10] = distance;
+      delay(50);
+    }
+}
+  flag = 1;
     
       //Header
       distance_ultra.header.stamp = nh.now();
-      distance_ultra.header.frame_id = "laser_frame";
+      distance_ultra.header.frame_id = "fake_laser";
       
       //Angle 
       distance_ultra.angle_min = 0;
@@ -71,24 +64,26 @@ void loop()
       distance_ultra.angle_increment = 0.0174533;
 
       //Time 
-      distance_ultra.time_increment = 0.110;
-      distance_ultra.scan_time = 6.600;
+      distance_ultra.time_increment = 0;//0.110;
+      distance_ultra.scan_time = 0;//6.600;
       
       //Range 
-      distance_ultra.range_min = 0.3;
-      distance_ultra.range_max = 400;
+      distance_ultra.range_min = 0.0;
+      distance_ultra.range_max = 40;
 
       //Ranges 
-    distance_ultra.ranges = ranges;
-  pub.publish(&distance_ultra);
+//      /distance_ultra.ranges.resize(18);
+      
+      distance_ultra.ranges_length = 18;
+         distance_ultra.ranges = ranges;      
+      pub.publish(&distance_ultra);      
+//      for(unsigned int i = 0; i < 18; ++i){
+//         distance_ultra.ranges[i] = ranges[i];
+//         scan.intensities[i] = intensities[i];
+      
 
-      
-      
-      
-      delay(100);
-    }
-    
-    
-  nh.spinOnce();
+
+
+      nh.spinOnce();
  first_servo.write(0); 
 }
